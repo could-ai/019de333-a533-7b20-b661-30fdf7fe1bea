@@ -58,7 +58,7 @@ class _BouncyButtonState extends State<BouncyButton> {
     final fgColor = widget.isOutlined ? defaultColor : Colors.white;
     final borderColor = widget.isOutlined ? AppColors.border : defaultShadowColor;
     
-    final shadowHeight = widget.isOutlined ? 2.0 : 4.0;
+    final shadowHeight = widget.isOutlined ? 1.0 : 3.0;
 
     return Listener(
       onPointerDown: _onPointerDown,
@@ -70,12 +70,12 @@ class _BouncyButtonState extends State<BouncyButton> {
         padding: EdgeInsets.only(bottom: _isPressed ? 0 : shadowHeight),
         decoration: BoxDecoration(
           color: widget.isOutlined ? AppColors.border : defaultShadowColor,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(12),
         ),
         child: Container(
           decoration: BoxDecoration(
             color: bgColor,
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(12),
             border: widget.isOutlined ? Border.all(color: AppColors.border, width: 2) : null,
           ),
           padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
@@ -89,12 +89,12 @@ class _BouncyButtonState extends State<BouncyButton> {
                 const SizedBox(width: 8),
               ],
               Text(
-                widget.text.toUpperCase(),
+                widget.text,
                 style: TextStyle(
                   color: fgColor,
                   fontSize: 16,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: 1.2,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 0.5,
                 ),
               ),
             ],

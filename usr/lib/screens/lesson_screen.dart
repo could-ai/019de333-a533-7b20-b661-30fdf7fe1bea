@@ -15,16 +15,16 @@ class LessonScreen extends StatefulWidget {
 class _LessonScreenState extends State<LessonScreen> {
   int _currentQuestionIndex = 0;
   int? _selectedOptionIndex;
-  bool _hasAnswered = false;
+  bool _isAnswerChecked = false;
   bool _isCorrect = false;
 
   void _checkAnswer() {
     if (_selectedOptionIndex == null) return;
-    
-    final currentQuestion = widget.lesson.questions[_currentQuestionIndex];
+
+    final question = widget.lesson.questions[_currentQuestionIndex];
     setState(() {
-      _hasAnswered = true;
-      _isCorrect = _selectedOptionIndex == currentQuestion.correctOptionIndex;
+      _isAnswerChecked = true;
+      _isCorrect = _selectedOptionIndex == question.correctOptionIndex;
     });
   }
 
@@ -33,215 +33,259 @@ class _LessonScreenState extends State<LessonScreen> {
       setState(() {
         _currentQuestionIndex++;
         _selectedOptionIndex = null;
-        _hasAnswered = false;
+        _isAnswerChecked = false;
         _isCorrect = false;
       });
     } else {
-      // Lesson complete
       _showCompletionDialog();
     }
   }
 
   void _showCompletionDialog() {
-    showModalBottomSheet(
+    showDialog(
       context: context,
-      isScrollControlled: true,
-      isDismissible: false,
-      enableDrag: false,
-      backgroundColor: Colors.transparent,
-      builder: (context) => Container(
-        padding: const EdgeInsets.all(32),
-        decoration: const BoxDecoration(
-          color: AppColors.background,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        backgroundColor: AppColors.surface,
+        title: Column(
           children: [
-            const Icon(Icons.stars_rounded, color: AppColors.warning, size: 80),
+            Icon(Icons.emoji_events_rounded, color: AppColors.warning, size: 64),
             const SizedBox(height: 16),
-            const Text(
+            Text(
               'Lesson Complete!',
               style: TextStyle(
-                fontSize: 24,
+                color: AppColors.textPrimary,
                 fontWeight: FontWeight.bold,
-                color: AppColors.warning,
               ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'You earned +15 XP',
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-            const SizedBox(height: 32),
-            SizedBox(
-              width: double.infinity,
-              child: BouncyButton(
-                text: 'CONTINUE',
-                color: AppColors.primary,
-                shadowColor: AppColors.primaryShadow,
-                onPressed: () {
-                  Navigator.pop(context); // Close sheet
-                  Navigator.pop(context); // Back to home
-                },
-              ),
+              textAlign: TextAlign.center,
             ),
           ],
         ),
+        content: Text(
+          'You have successfully completed ${widget.lesson.title}. Keep up the great work!',
+          style: TextStyle(color: AppColors.textSecondary),
+          textAlign: TextAlign.center,
+        ),
+        actionsAlignment: MainAxisAlignment.center,
+        actions: [
+          BouncyButton(
+            onPressed: () {
+              Navigator.of(context).pop(); // pop dialog
+              Navigator.of(context).pop(); // pop screen
+            },
+            text: 'Continue',
+            color: AppColors.primary,
+          ),
+        ],
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    if (widget.lesson.questions.isEmpty) {
-      return Scaffold(
-        appBar: AppBar(title: const Text('Coming Soon')),
-        body: const Center(
-          child: Text('This lesson is under construction!', style: TextStyle(fontSize: 18)),
-        ),
-      );
-    }
-
     final question = widget.lesson.questions[_currentQuestionIndex];
-    final progress = (_currentQuestionIndex) / widget.lesson.questions.length;
+    final progress = (_currentQuestionIndex + (_isAnswerChecked ? 1 : 0)) / widget.lesson.questions.length;
 
     return Scaffold(
+      backgroundColor: AppColors.background,
       appBar: AppBar(
+        backgroundColor: AppColors.background,
+        elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.close_rounded),
-          onPressed: () => Navigator.pop(context),
+          icon: Icon(Icons.close_rounded, color: AppColors.textMuted),
+          onPressed: () => Navigator.of(context).pop(),
         ),
         title: ClipRRect(
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(12),
           child: LinearProgressIndicator(
             value: progress,
-            backgroundColor: AppColors.surface,
-            valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primary),
-            minHeight: 16,
+            backgroundColor: AppColors.border,
+            valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
+            minHeight: 12,
           ),
         ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.favorite_rounded, color: AppColors.danger),
-            onPressed: () {},
-          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: Row(
+              children: [
+                Icon(Icons.favorite_rounded, color: AppColors.danger, size: 24),
+                const SizedBox(width: 4),
+                Text(
+                  '5',
+                  style: TextStyle(
+                    color: AppColors.danger,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
+              ],
+            ),
+          )
         ],
       ),
       body: SafeArea(
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Expanded(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.all(24),
+                padding: const EdgeInsets.all(24.0),
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     Text(
-                      'Choose the correct answer',
-                      style: Theme.of(context).textTheme.titleLarge,
+                      'Question ${_currentQuestionIndex + 1} of ${widget.lesson.questions.length}',
+                      style: TextStyle(
+                        color: AppColors.textMuted,
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 1.2,
+                      ),
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 12),
                     Text(
                       question.prompt,
-                      style: const TextStyle(
-                        fontSize: 22,
+                      style: TextStyle(
+                        color: AppColors.textPrimary,
+                        fontSize: 24,
                         fontWeight: FontWeight.bold,
                         height: 1.3,
                       ),
                     ),
-                    const SizedBox(height: 32),
-                    ...question.options.asMap().entries.map((entry) {
-                      final idx = entry.key;
-                      final text = entry.value;
-                      final isSelected = _selectedOptionIndex == idx;
-                      
-                      Color cardColor = AppColors.background;
-                      Color borderColor = AppColors.border;
-                      Color textColor = AppColors.textMain;
-
-                      if (_hasAnswered) {
-                        if (idx == question.correctOptionIndex) {
-                          cardColor = AppColors.primary.withOpacity(0.1);
-                          borderColor = AppColors.primary;
-                          textColor = AppColors.primaryShadow;
-                        } else if (isSelected) {
-                          cardColor = AppColors.danger.withOpacity(0.1);
-                          borderColor = AppColors.danger;
-                          textColor = AppColors.dangerShadow;
-                        }
-                      } else if (isSelected) {
-                        cardColor = AppColors.secondary.withOpacity(0.1);
-                        borderColor = AppColors.secondary;
-                        textColor = AppColors.secondaryShadow;
-                      }
-
-                      return GestureDetector(
-                        onTap: _hasAnswered
-                            ? null
-                            : () {
-                                setState(() {
-                                  _selectedOptionIndex = idx;
-                                });
-                              },
-                        child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 200),
-                          margin: const EdgeInsets.only(bottom: 16),
-                          padding: const EdgeInsets.all(20),
-                          decoration: BoxDecoration(
-                            color: cardColor,
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: borderColor, width: 2),
-                          ),
-                          child: Text(
-                            text,
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: textColor,
-                            ),
-                          ),
-                        ),
+                    const SizedBox(height: 40),
+                    ...List.generate(question.options.length, (index) {
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 16.0),
+                        child: _buildOption(index, question.options[index], question.correctOptionIndex),
                       );
                     }),
                   ],
                 ),
               ),
             ),
-            _buildBottomBar(),
+            _buildBottomBar(question),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildBottomBar() {
-    if (!_hasAnswered) {
-      return Container(
-        padding: const EdgeInsets.all(24),
+  Widget _buildOption(int index, String text, int correctIndex) {
+    final isSelected = _selectedOptionIndex == index;
+    
+    Color borderColor = AppColors.border;
+    Color bgColor = AppColors.surface;
+    Color textColor = AppColors.textPrimary;
+
+    if (_isAnswerChecked) {
+      if (index == correctIndex) {
+        borderColor = AppColors.success;
+        bgColor = AppColors.success.withOpacity(0.1);
+        textColor = AppColors.success;
+      } else if (isSelected) {
+        borderColor = AppColors.danger;
+        bgColor = AppColors.danger.withOpacity(0.1);
+        textColor = AppColors.danger;
+      }
+    } else if (isSelected) {
+      borderColor = AppColors.primary;
+      bgColor = AppColors.primary.withOpacity(0.1);
+      textColor = AppColors.primary;
+    }
+
+    return GestureDetector(
+      onTap: _isAnswerChecked
+          ? null
+          : () {
+              setState(() {
+                _selectedOptionIndex = index;
+              });
+            },
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
         decoration: BoxDecoration(
-          color: AppColors.background,
+          color: bgColor,
+          border: Border.all(color: borderColor, width: isSelected || _isAnswerChecked ? 2 : 2),
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 28,
+              height: 28,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(color: borderColor, width: 2),
+                color: _isAnswerChecked && index == correctIndex
+                    ? AppColors.success
+                    : _isAnswerChecked && isSelected
+                        ? AppColors.danger
+                        : isSelected
+                            ? AppColors.primary
+                            : Colors.transparent,
+              ),
+              child: _isAnswerChecked && index == correctIndex
+                  ? Icon(Icons.check, size: 16, color: Colors.white)
+                  : _isAnswerChecked && isSelected
+                      ? Icon(Icons.close, size: 16, color: Colors.white)
+                      : isSelected
+                          ? Center(
+                              child: Container(
+                                width: 12,
+                                height: 12,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            )
+                          : null,
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Text(
+                text,
+                style: TextStyle(
+                  color: textColor,
+                  fontSize: 16,
+                  fontWeight: isSelected || _isAnswerChecked ? FontWeight.bold : FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBottomBar(Question question) {
+    if (!_isAnswerChecked) {
+      return Container(
+        padding: const EdgeInsets.all(24.0),
+        decoration: BoxDecoration(
+          color: AppColors.surface,
           border: Border(top: BorderSide(color: AppColors.border, width: 2)),
         ),
         child: BouncyButton(
-          text: 'CHECK',
-          color: _selectedOptionIndex == null ? AppColors.surface : AppColors.primary,
-          shadowColor: _selectedOptionIndex == null ? AppColors.border : AppColors.primaryShadow,
-          onPressed: _selectedOptionIndex == null ? () {} : _checkAnswer,
+          onPressed: _selectedOptionIndex != null ? _checkAnswer : () {},
+          text: 'Check Answer',
+          color: _selectedOptionIndex != null ? AppColors.primary : AppColors.border,
         ),
       );
     }
 
-    final bgColor = _isCorrect ? AppColors.primary.withOpacity(0.1) : AppColors.danger.withOpacity(0.1);
-    final fgColor = _isCorrect ? AppColors.primaryShadow : AppColors.dangerShadow;
-    final icon = _isCorrect ? Icons.check_circle_rounded : Icons.cancel_rounded;
-    final title = _isCorrect ? 'Nicely done!' : 'Incorrect';
-
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(24.0),
       decoration: BoxDecoration(
-        color: bgColor,
+        color: _isCorrect ? AppColors.success.withOpacity(0.1) : AppColors.danger.withOpacity(0.1),
+        border: Border(
+          top: BorderSide(
+            color: _isCorrect ? AppColors.success : AppColors.danger,
+            width: 2,
+          ),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -249,33 +293,38 @@ class _LessonScreenState extends State<LessonScreen> {
         children: [
           Row(
             children: [
-              Icon(icon, color: fgColor, size: 32),
+              Icon(
+                _isCorrect ? Icons.check_circle_rounded : Icons.cancel_rounded,
+                color: _isCorrect ? AppColors.success : AppColors.danger,
+                size: 32,
+              ),
               const SizedBox(width: 12),
-              Text(
-                title,
-                style: TextStyle(
-                  color: fgColor,
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
+              Expanded(
+                child: Text(
+                  _isCorrect ? 'Excellent!' : 'Not quite right',
+                  style: TextStyle(
+                    color: _isCorrect ? AppColors.success : AppColors.danger,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           Text(
-            widget.lesson.questions[_currentQuestionIndex].explanation,
+            question.explanation,
             style: TextStyle(
-              color: fgColor.withOpacity(0.8),
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
+              color: AppColors.textSecondary,
+              fontSize: 15,
+              height: 1.4,
             ),
           ),
           const SizedBox(height: 24),
           BouncyButton(
-            text: 'CONTINUE',
-            color: _isCorrect ? AppColors.primary : AppColors.danger,
-            shadowColor: _isCorrect ? AppColors.primaryShadow : AppColors.dangerShadow,
             onPressed: _nextQuestion,
+            text: _currentQuestionIndex < widget.lesson.questions.length - 1 ? 'Continue' : 'Finish Lesson',
+            color: _isCorrect ? AppColors.success : AppColors.danger,
           ),
         ],
       ),

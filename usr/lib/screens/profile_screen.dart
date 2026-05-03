@@ -7,48 +7,76 @@ class ProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          _buildProfileHeader(context),
-          const SizedBox(height: 32),
-          const Divider(color: AppColors.border, thickness: 2),
-          const SizedBox(height: 32),
-          Text('Statistics', style: Theme.of(context).textTheme.titleLarge),
-          const SizedBox(height: 16),
-          _buildStatsGrid(),
-          const SizedBox(height: 32),
-          Text('Achievements', style: Theme.of(context).textTheme.titleLarge),
-          const SizedBox(height: 16),
-          _buildAchievementsList(),
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      appBar: AppBar(
+        backgroundColor: AppColors.background,
+        elevation: 0,
+        title: Text(
+          'Profile',
+          style: TextStyle(
+            color: AppColors.textPrimary,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.settings_rounded, color: AppColors.textSecondary),
+            onPressed: () {},
+          ),
         ],
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          children: [
+            _buildProfileHeader(),
+            const SizedBox(height: 32),
+            _buildStatsGrid(),
+            const SizedBox(height: 32),
+            _buildAchievementsList(),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildProfileHeader(BuildContext context) {
+  Widget _buildProfileHeader() {
     return Row(
       children: [
-        CircleAvatar(
-          radius: 40,
-          backgroundColor: AppColors.surface,
-          backgroundImage: NetworkImage(mockUser.avatarUrl),
+        Container(
+          width: 80,
+          height: 80,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: AppColors.primary.withOpacity(0.1),
+            border: Border.all(color: AppColors.primary, width: 2),
+            image: DecorationImage(
+              image: NetworkImage(mockUser.avatarUrl),
+              fit: BoxFit.cover,
+            ),
+          ),
         ),
-        const SizedBox(width: 24),
+        const SizedBox(width: 20),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                mockUser.name,
-                style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                mockUser.displayName,
+                style: const TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textPrimary,
+                ),
               ),
               const SizedBox(height: 4),
-              const Text(
-                'Joined May 2026',
-                style: TextStyle(color: AppColors.textMuted, fontSize: 16),
+              Text(
+                'Joined ${mockUser.joinedDate.month}/${mockUser.joinedDate.year}',
+                style: const TextStyle(
+                  fontSize: 14,
+                  color: AppColors.textSecondary,
+                ),
               ),
             ],
           ),
@@ -58,50 +86,101 @@ class ProfileScreen extends StatelessWidget {
   }
 
   Widget _buildStatsGrid() {
-    return GridView.count(
-      crossAxisCount: 2,
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      mainAxisSpacing: 16,
-      crossAxisSpacing: 16,
-      childAspectRatio: 2.5,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildStatCard(Icons.local_fire_department_rounded, AppColors.warning, mockUser.streak.toString(), 'Day Streak'),
-        _buildStatCard(Icons.bolt_rounded, AppColors.secondary, mockUser.totalXp.toString(), 'Total XP'),
-        _buildStatCard(Icons.emoji_events_rounded, Colors.amber, 'Bronze', 'Current League'),
-        _buildStatCard(Icons.verified_rounded, AppColors.primary, '1', 'Top 3 Finishes'),
+        Text(
+          'Statistics',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: AppColors.textPrimary,
+          ),
+        ),
+        const SizedBox(height: 16),
+        GridView.count(
+          crossAxisCount: 2,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          mainAxisSpacing: 16,
+          crossAxisSpacing: 16,
+          childAspectRatio: 1.5,
+          children: [
+            _buildStatCard(
+              icon: Icons.local_fire_department_rounded,
+              color: AppColors.warning,
+              value: mockUser.streak.toString(),
+              label: 'Day Streak',
+            ),
+            _buildStatCard(
+              icon: Icons.electric_bolt_rounded,
+              color: AppColors.secondary,
+              value: mockUser.totalXP.toString(),
+              label: 'Total XP',
+            ),
+            _buildStatCard(
+              icon: Icons.emoji_events_rounded,
+              color: AppColors.primary,
+              value: 'Bronze',
+              label: 'Current League',
+            ),
+            _buildStatCard(
+              icon: Icons.check_circle_rounded,
+              color: AppColors.success,
+              value: '12',
+              label: 'Lessons Done',
+            ),
+          ],
+        ),
       ],
     );
   }
 
-  Widget _buildStatCard(IconData icon, Color color, String value, String label) {
+  Widget _buildStatCard({
+    required IconData icon,
+    required Color color,
+    required String value,
+    required String label,
+  }) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: AppColors.background,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border, width: 2),
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.border, width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: color.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
-      child: Row(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(icon, color: color, size: 32),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  value,
-                  style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          Row(
+            children: [
+              Icon(icon, color: color, size: 24),
+              const Spacer(),
+              Text(
+                value,
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textPrimary,
                 ),
-                Text(
-                  label,
-                  style: const TextStyle(fontSize: 12, color: AppColors.textMuted, fontWeight: FontWeight.bold),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
+              ),
+            ],
+          ),
+          const Spacer(),
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: AppColors.textSecondary,
             ),
           ),
         ],
@@ -111,82 +190,100 @@ class ProfileScreen extends StatelessWidget {
 
   Widget _buildAchievementsList() {
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildAchievementTile(
-          icon: Icons.savings_rounded,
-          color: AppColors.primary,
-          title: 'Penny Pincher',
-          description: 'Complete the Personal Finance Basics module.',
-          progress: 1.0,
+        Text(
+          'Achievements',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: AppColors.textPrimary,
+          ),
         ),
         const SizedBox(height: 16),
-        _buildAchievementTile(
-          icon: Icons.trending_up_rounded,
-          color: Colors.purple,
-          title: 'Market Maker',
-          description: 'Complete the Intro to Economics module.',
-          progress: 0.2,
-        ),
-      ],
-    );
-  }
+        ...mockUser.achievements.map((achievement) {
+          final isCompleted = achievement.progress >= achievement.target;
+          final progressPercent = (achievement.progress / achievement.target).clamp(0.0, 1.0);
 
-  Widget _buildAchievementTile({
-    required IconData icon,
-    required Color color,
-    required String title,
-    required String description,
-    required double progress,
-  }) {
-    final isCompleted = progress >= 1.0;
-    
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.background,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border, width: 2),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
+          return Container(
+            margin: const EdgeInsets.only(bottom: 16),
+            padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: isCompleted ? color.withOpacity(0.1) : AppColors.surface,
-              shape: BoxShape.circle,
+              color: AppColors.surface,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: AppColors.border, width: 1.5),
             ),
-            child: Icon(
-              icon,
-              color: isCompleted ? color : AppColors.textMuted,
-              size: 32,
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            child: Row(
               children: [
-                Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                const SizedBox(height: 4),
-                Text(
-                  description,
-                  style: const TextStyle(color: AppColors.textMuted, fontSize: 14),
+                Container(
+                  width: 60,
+                  height: 60,
+                  decoration: BoxDecoration(
+                    color: isCompleted ? AppColors.warning.withOpacity(0.15) : AppColors.background,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    achievement.icon,
+                    color: isCompleted ? AppColors.warning : AppColors.textMuted,
+                    size: 32,
+                  ),
                 ),
-                const SizedBox(height: 12),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: LinearProgressIndicator(
-                    value: progress,
-                    backgroundColor: AppColors.surface,
-                    valueColor: AlwaysStoppedAnimation<Color>(isCompleted ? AppColors.warning : color),
-                    minHeight: 8,
+                const SizedBox(width: 20),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        achievement.title,
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        achievement.description,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(10),
+                              child: LinearProgressIndicator(
+                                value: progressPercent,
+                                backgroundColor: AppColors.background,
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  isCompleted ? AppColors.warning : AppColors.primary,
+                                ),
+                                minHeight: 8,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Text(
+                            '${achievement.progress}/${achievement.target}',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.bold,
+                              color: isCompleted ? AppColors.warning : AppColors.textMuted,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
                 ),
               ],
             ),
-          ),
-        ],
-      ),
+          );
+        }).toList(),
+      ],
     );
   }
 }
